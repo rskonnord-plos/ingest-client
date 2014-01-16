@@ -1,0 +1,40 @@
+<html>
+<head>
+  <title>Ingestibles Client for Rhino</title>
+  <link rel="stylesheet" href="ingest-client.css"/>
+</head>
+<body>
+<div>
+  <input type="text" id="serverUrl">
+</div>
+<div>
+  <table id="ingestibles">
+    <tr>
+      <th>Archive</th>
+      <th>Ingest</th>
+      <th>Force</th>
+      <th>Delete</th>
+    </tr>
+    <tr class="ingestible prototype" style="display: none;">
+      <td class="archiveName"></td>
+      <td class="ingestButton">
+        <button>Ingest</button>
+      </td>
+      <td class="forceButton">
+        <button>Ingest<br/>
+
+          <div style="font-size: smaller">(Force Reingest)</div>
+        </button>
+      </td>
+      <td class="deleteButton">
+        <button>Delete</button>
+      </td>
+    </tr>
+  </table>
+</div>
+<div id="output"></div>
+
+<script src="jquery-2.0.3.js"></script>
+<script src="ingest-client.js"></script>
+</body>
+</html>
