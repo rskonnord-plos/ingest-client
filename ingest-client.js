@@ -19,52 +19,92 @@ function getServerAddress() {
   return url;
 }
 
-function getIngestiblesAddress() {
+function getIngestiblesQueryAddress() {
   return getServerAddress() + 'ingestibles';
 }
 
-function ingest(name, force) {
-  $.ajax(getIngestiblesAddress(), {
-    type: 'POST',
-    data_type: 'jsonp',
-    data: {
-      name: name,
-      force_reingest: force
-    },
-    success: function (data, textStatus, jqXHR) {
-      alert('success'); // TODO
-    },
-    error: function (jqXHR, textStatus, errorThrown) {
-      alert(jqXHR.responseText);
-    }
-  });
+function getPublishableQueryAddress() {
+  return getServerAddress() + 'articles?state=ingested';
 }
 
-function makeIngestAction($row, force) {
+function makeIngestAction(name, force) {
   return function (eventObject) {
-    ingest($row.find('.archiveName').text(), force);
+    $.ajax(getIngestiblesQueryAddress(), {
+      type: 'POST',
+      data_type: 'jsonp',
+      data: {
+        name: name,
+        force_reingest: force
+      },
+      success: function (data, textStatus, jqXHR) {
+        refresh();
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        alert(textStatus);
+      }
+    });
   }
 }
 
-function fillTable(ingestibleNames) {
+function fillIngestibleTable(ingestibleNames) {
   $(ingestibleNames).each(function (index, element) {
     var $row = $('tr.ingestible.prototype').clone().removeClass('prototype');
 
     $row.find('.archiveName').text(element);
-    $row.find('.ingestButton button').click(makeIngestAction($row, false));
-    $row.find('.forceButton button').click(makeIngestAction($row, true));
+    $row.find('.ingestButton button').click(makeIngestAction(element, false));
+    $row.find('.forceButton button').click(makeIngestAction(element, true));
 
     $('#ingestibles tr:last').after($row);
     $row.show();
   });
 }
 
-function populate() {
-  jQuery.ajax(getIngestiblesAddress(), {
+function makePublishAction(name) {
+  return function (eventObject) {
+    var url = getServerAddress() + 'articles/' + name
+    $.ajax(url, {
+      type: 'PATCH',
+      contentType: 'application/json',
+      data: {
+        state: 'published'
+      },
+      success: function (data, textStatus, jqXHR) {
+        refresh();
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        alert(textStatus);
+      }
+    });
+  }
+}
+
+function fillPublishableTable(articleIds) {
+  $(articleIds).each(function (index, element) {
+    var $row = $('tr.publishable.prototype').clone().removeClass('prototype');
+
+    $row.find('.articleId').text(element);
+    $row.find('.publishButton button').click(makePublishAction(element));
+
+    $('#publishables tr:last').after($row);
+    $row.show();
+  });
+}
+
+function refresh() {
+  $('.ajax-entity:not(.prototype)').remove();
+  jQuery.ajax(getIngestiblesQueryAddress(), {
     dataType: 'jsonp',
     success: function (data, textStatus, jqXHR) {
-      alert(jqXHR.responseText);
-      fillTable(data);
+      fillIngestibleTable(data);
+    },
+    error: function (jqXHR, textStatus, errorThrown) {
+      alert('Error: ' + textStatus);
+    }
+  });
+  jQuery.ajax(getPublishableQueryAddress(), {
+    dataType: 'jsonp',
+    success: function (data, textStatus, jqXHR) {
+      fillPublishableTable(Object.keys(data));
     },
     error: function (jqXHR, textStatus, errorThrown) {
       alert('Error: ' + textStatus);
@@ -72,5 +112,5 @@ function populate() {
   });
 }
 
-populate();
+refresh();
 
